@@ -33,7 +33,7 @@ func main() {
 }
 
 func publicAPIExamples(client *pi42.Client) {
-	fmt.Println("\n=== Public API Examples ===\n")
+	fmt.Println("\n=== Public API Examples ===")
 
 	// Get exchange info
 	exchangeInfo, err := client.Exchange.ExchangeInfo("")
@@ -49,10 +49,9 @@ func publicAPIExamples(client *pi42.Client) {
 	}
 
 	// Get ticker data for BTC
-	ticker, err := client.Market.GetTicker24hr("btc")
+	ticker, err := client.Market.GetTicker24hr("BTCINR")
 	if err != nil {
 		fmt.Printf("Error getting ticker: %v\n", err)
-		// Try lowercase
 		ticker, err = client.Market.GetTicker24hr("BTCINR")
 		if err != nil {
 			fmt.Printf("Also failed with BTCINR: %v\n", err)
@@ -86,7 +85,7 @@ func publicAPIExamples(client *pi42.Client) {
 }
 
 func authenticatedAPIExamples(client *pi42.Client) {
-	fmt.Println("\n=== Authenticated API Examples ===\n")
+	fmt.Println("\n=== Authenticated API Examples ===")
 
 	if client.APIKey == "" || client.APISecret == "" {
 		fmt.Println("Skipped - No API Keys")
@@ -99,6 +98,13 @@ func authenticatedAPIExamples(client *pi42.Client) {
 		fmt.Printf("Error getting wallet details: %v\n", err)
 	} else {
 		fmt.Printf("Futures Wallet: Available balance = %v INR\n", wallet["withdrawableBalance"])
+	}
+
+	wallet, err = client.Wallet.FundingWalletDetails("INR")
+	if err != nil {
+		fmt.Printf("Error getting funding wallet details: %v\n", err)
+	} else {
+		fmt.Printf("Funding Wallet: Available balance = %v INR\n", wallet["withdrawableBalance"])
 	}
 
 	// Get open orders
@@ -119,7 +125,7 @@ func authenticatedAPIExamples(client *pi42.Client) {
 }
 
 func websocketExample(client *pi42.Client) {
-	fmt.Println("\n=== WebSocket Example ===\n")
+	fmt.Println("\n=== WebSocket Example ===")
 
 	// Track received messages
 	receivedMessages := 0
