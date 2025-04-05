@@ -29,7 +29,7 @@ func main() {
 	// Run examples
 	publicAPIExamples(client)
 	authenticatedAPIExamples(client)
-	websocketExample(client)
+	socketioExample(client)
 }
 
 func publicAPIExamples(client *pi42.Client) {
@@ -124,8 +124,8 @@ func authenticatedAPIExamples(client *pi42.Client) {
 	}
 }
 
-func websocketExample(client *pi42.Client) {
-	fmt.Println("\n=== WebSocket Example ===")
+func socketioExample(client *pi42.Client) {
+	fmt.Println("\n=== Socketio Example ===")
 
 	// Track received messages
 	receivedMessages := 0
@@ -137,13 +137,13 @@ func websocketExample(client *pi42.Client) {
 	}
 
 	// Register the callback
-	client.WebSocket.On("24hrTicker", handleTicker)
+	client.Socketio.On("24hrTicker", handleTicker)
 
-	// Connect to WebSocket and subscribe to BTCINR ticker
-	fmt.Println("Connecting to WebSocket and subscribing to BTCINR ticker...")
-	err := client.WebSocket.ConnectPublic([]string{"btcinr@ticker"})
+	// Connect to Socketio and subscribe to BTCINR ticker
+	fmt.Println("Connecting to Socketio and subscribing to BTCINR ticker...")
+	err := client.Socketio.ConnectPublic([]string{"btcinr@ticker"})
 	if err != nil {
-		fmt.Printf("WebSocket connection error: %v\n", err)
+		fmt.Printf("Socketio connection error: %v\n", err)
 		return
 	}
 
@@ -163,12 +163,12 @@ func websocketExample(client *pi42.Client) {
 			} else {
 				fmt.Printf("Received %d ticker updates\n", receivedMessages)
 			}
-			client.WebSocket.Close()
+			client.Socketio.Close()
 			return
 		case <-ticker.C:
 			if receivedMessages > 0 {
 				fmt.Printf("Received %d ticker updates\n", receivedMessages)
-				client.WebSocket.Close()
+				client.Socketio.Close()
 				return
 			}
 		}

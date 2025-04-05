@@ -11,7 +11,7 @@ The Pi42 Go Client provides a comprehensive interface to the Pi42 API, allowing 
 
 - Complete API coverage for Pi42 exchange
 - Support for public and authenticated endpoints
-- Real-time market data via WebSocket
+- Real-time market data via Socketio
 - Comprehensive error handling
 - Easy-to-use API structure following Go conventions
 
@@ -69,7 +69,7 @@ The client is organized into the following components:
 - `Wallet`: Access to wallet information
 - `Exchange`: Access to exchange information and settings
 - `UserData`: Access to user-specific data
-- `WebSocket`: Real-time data streams
+- `Socketio`: Real-time data streams
 
 ## Documentation
 
@@ -113,7 +113,7 @@ orders, err := client.Order.GetOpenOrders(pi42.OrderQueryParams{})
 result, err := client.Order.DeleteOrder("CLIENT_ORDER_ID")
 ```
 
-### WebSocket API
+### Socketio API
 
 ```go
 // Define a handler for ticker updates
@@ -122,10 +122,10 @@ handleTicker := func(data map[string]interface{}) {
 }
 
 // Register the handler
-client.WebSocket.On("24hrTicker", handleTicker)
+client.Socketio.On("24hrTicker", handleTicker)
 
 // Connect and subscribe to BTCINR ticker
-client.WebSocket.ConnectPublic([]string{"btcinr@ticker"})
+client.Socketio.ConnectPublic([]string{"btcinr@ticker"})
 ```
 
 ## Error Handling

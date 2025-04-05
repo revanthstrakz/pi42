@@ -108,7 +108,7 @@ func (api *UserDataAPI) GetTransactionHistory(params TransactionHistoryParams) (
 	return result, nil
 }
 
-// CreateListenKey creates a new listen key for WebSocket connections
+// CreateListenKey creates a new listen key for Socketio connections
 func (api *UserDataAPI) CreateListenKey() (map[string]string, error) {
 	endpoint := "/v1/retail/listen-key"
 
@@ -125,7 +125,7 @@ func (api *UserDataAPI) CreateListenKey() (map[string]string, error) {
 	return result, nil
 }
 
-// UpdateListenKey updates the listen key for WebSocket connections
+// UpdateListenKey updates the listen key for Socketio connections
 func (api *UserDataAPI) UpdateListenKey() (string, error) {
 	endpoint := "/v1/retail/listen-key"
 
@@ -137,7 +137,7 @@ func (api *UserDataAPI) UpdateListenKey() (string, error) {
 	return string(data), nil
 }
 
-// DeleteListenKey deletes the listen key for WebSocket connections
+// DeleteListenKey deletes the listen key for Socketio connections
 func (api *UserDataAPI) DeleteListenKey() (string, error) {
 	endpoint := "/v1/retail/listen-key"
 

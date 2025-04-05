@@ -21,13 +21,13 @@ type Client struct {
 	PublicURL  string
 	HTTPClient *http.Client
 
-	Market    *MarketAPI
-	Order     *OrderAPI
-	Position  *PositionAPI
-	Wallet    *WalletAPI
-	Exchange  *ExchangeAPI
-	UserData  *UserDataAPI
-	WebSocket *WebSocketManager
+	Market   *MarketAPI
+	Order    *OrderAPI
+	Position *PositionAPI
+	Wallet   *WalletAPI
+	Exchange *ExchangeAPI
+	UserData *UserDataAPI
+	Socketio *SocketioManager
 }
 
 // NewClient creates a new Pi42 API client
@@ -47,7 +47,7 @@ func NewClient(apiKey, apiSecret string) *Client {
 	client.Wallet = NewWalletAPI(client)
 	client.Exchange = NewExchangeAPI(client)
 	client.UserData = NewUserDataAPI(client)
-	client.WebSocket = NewWebSocketManager(client)
+	client.Socketio = NewSocketioManager(client)
 
 	return client
 }

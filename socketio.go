@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// WebSocketManager handles WebSocket connections for Pi42 API
-type WebSocketManager struct {
+// SocketioManager handles Socketio connections for Pi42 API
+type SocketioManager struct {
 	client        *Client
 	dialer        *http.Client
 	publicURL     string
@@ -24,9 +24,9 @@ type WebSocketManager struct {
 	isRunning     bool
 }
 
-// NewWebSocketManager creates a new WebSocket manager
-func NewWebSocketManager(client *Client) *WebSocketManager {
-	return &WebSocketManager{
+// NewSocketioManager creates a new Socketio manager
+func NewSocketioManager(client *Client) *SocketioManager {
+	return &SocketioManager{
 		client:        client,
 		dialer:        &http.Client{Timeout: 30 * time.Second},
 		publicURL:     "https://fawss.pi42.com/socket.io",
@@ -37,8 +37,8 @@ func NewWebSocketManager(client *Client) *WebSocketManager {
 	}
 }
 
-// ConnectPublic connects to the public WebSocket server and subscribes to topics
-func (ws *WebSocketManager) ConnectPublic(topics []string) error {
+// ConnectPublic connects to the public Socketio server and subscribes to topics
+func (ws *SocketioManager) ConnectPublic(topics []string) error {
 	// Create a custom transport for Socket.IO
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -57,7 +57,7 @@ func (ws *WebSocketManager) ConnectPublic(topics []string) error {
 		defer ws.wg.Done()
 
 		// Connect to the server
-		log.Println("Connecting to Socket.IO server via direct WebSocket...")
+		log.Println("Connecting to Socket.IO server via direct Socketio...")
 
 		// Create a request to get the Socket.IO session
 		req, err := http.NewRequest("GET", ws.publicURL, nil)
@@ -68,8 +68,8 @@ func (ws *WebSocketManager) ConnectPublic(topics []string) error {
 
 		// Set headers
 		req.Header.Set("Connection", "Upgrade")
-		req.Header.Set("Upgrade", "websocket")
-		req.Header.Set("Sec-WebSocket-Version", "13")
+		req.Header.Set("Upgrade", "socketio")
+		req.Header.Set("Sec-Socketio-Version", "13")
 
 		// Make the request
 		resp, err := ws.dialer.Do(req)
@@ -90,7 +90,7 @@ func (ws *WebSocketManager) ConnectPublic(topics []string) error {
 		}
 
 		// Simple polling implementation to keep connection alive
-		// In a real implementation, you'd want to properly maintain the WebSocket
+		// In a real implementation, you'd want to properly maintain the Socketio
 		for ws.isRunning {
 			select {
 			case <-ws.stopChan:
@@ -105,11 +105,11 @@ func (ws *WebSocketManager) ConnectPublic(topics []string) error {
 	return nil
 }
 
-// SubscribePublic subscribes to public WebSocket topics
-func (ws *WebSocketManager) SubscribePublic(topics []string) error {
+// SubscribePublic subscribes to public Socketio topics
+func (ws *SocketioManager) SubscribePublic(topics []string) error {
 	log.Printf("Subscribing to topics: %v", topics)
 
-	// In a real implementation, you'd send the subscription message over the WebSocket
+	// In a real implementation, you'd send the subscription message over the Socketio
 	// For now, we'll just log it
 	log.Println("Subscription successful (simulated)")
 
@@ -146,11 +146,11 @@ func (ws *WebSocketManager) SubscribePublic(topics []string) error {
 	return nil
 }
 
-// ConnectAuthenticated connects to the authenticated WebSocket server
-func (ws *WebSocketManager) ConnectAuthenticated(listenKey string) error {
+// ConnectAuthenticated connects to the authenticated Socketio server
+func (ws *SocketioManager) ConnectAuthenticated(listenKey string) error {
 	if listenKey == "" {
 		if ws.client.APIKey == "" || ws.client.APISecret == "" {
-			return fmt.Errorf("API key and secret are required for authenticated WebSocket")
+			return fmt.Errorf("API key and secret are required for authenticated Socketio")
 		}
 
 		resp, err := ws.client.UserData.CreateListenKey()
@@ -166,20 +166,20 @@ func (ws *WebSocketManager) ConnectAuthenticated(listenKey string) error {
 	// Similar implementation as ConnectPublic would go here
 	// For brevity, we're skipping the full implementation
 
-	log.Println("Connected to Authenticated WebSocket server (simulated)")
+	log.Println("Connected to Authenticated Socketio server (simulated)")
 	return nil
 }
 
 // On registers a callback for a specific event type
-func (ws *WebSocketManager) On(eventType string, callback func(map[string]interface{})) {
+func (ws *SocketioManager) On(eventType string, callback func(map[string]interface{})) {
 	ws.callbackMutex.Lock()
 	defer ws.callbackMutex.Unlock()
 	ws.callbacks[eventType] = callback
 	log.Printf("Registered callback for event type: %s", eventType)
 }
 
-// Close closes all WebSocket connections
-func (ws *WebSocketManager) Close() {
+// Close closes all Socketio connections
+func (ws *SocketioManager) Close() {
 	if !ws.isRunning {
 		return
 	}
@@ -194,5 +194,5 @@ func (ws *WebSocketManager) Close() {
 	ws.stopChan = make(chan struct{})
 	ws.connectedChan = make(chan struct{})
 
-	log.Println("WebSocket connections closed")
+	log.Println("Socketio connections closed")
 }
