@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -22,16 +21,9 @@ const ServerURL = "wss://fawss.pi42.com/socket.io/?EIO=4&transport=websocket"
 
 // Global variables
 var (
-	dbManager     *DatabaseManager
-	dbInitialized bool
-	conn          *websocket.Conn
-	lastMessages  = make(map[string]json.RawMessage)
+	conn         *websocket.Conn
+	lastMessages = make(map[string]json.RawMessage)
 )
-
-// DatabaseManager handles database operations
-type DatabaseManager struct {
-	db *sql.DB
-}
 
 // Symbol represents a trading symbol
 type Symbol struct {
@@ -51,45 +43,9 @@ type ExchangeInfo struct {
 	Contracts []json.RawMessage `json:"contracts"`
 }
 
-// Initialize initializes the database connection
-func (dm *DatabaseManager) Initialize() error {
-	// In a real implementation, you would set up your database connection here
-	// For this example, we'll just simulate success
-	dm.db = &sql.DB{} // This is just a placeholder
-	log.Println("Database initialized successfully")
-	return nil
-}
-
-// SaveSymbols saves symbols to the database
-func (dm *DatabaseManager) SaveSymbols(symbols []Symbol) error {
-	// In a real implementation, you would save the symbols to the database
-	// For this example, we'll just log the symbols
-	log.Printf("Saving %d symbols to database", len(symbols))
-	return nil
-}
-
-// Close closes the database connection
-func (dm *DatabaseManager) Close() {
-	// In a real implementation, you would close the database connection
-	log.Println("Database connection closed")
-}
-
-// NewDatabaseManager creates a new database manager
-func NewDatabaseManager() *DatabaseManager {
-	return &DatabaseManager{}
-}
-
 // InitializeAndConnect initializes the database and connects to WebSocket
 func InitializeAndConnect() {
 	var err error
-
-	// Initialize database
-	log.Println("Initializing database...")
-	err = dbManager.Initialize()
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
-	}
-	dbInitialized = true
 
 	// Connect to WebSocket
 	log.Println("Connecting to WebSocket server...")
@@ -172,11 +128,7 @@ func processWebSocketMessage(msg string) {
 		}
 
 		if len(symbols) > 0 {
-			// Save symbols to database
-			err = dbManager.SaveSymbols(symbols)
-			if err != nil {
-				log.Printf("Error saving symbols to database: %v", err)
-			}
+			log.Printf("Found %d symbols", len(symbols))
 
 			// Subscribe to topics
 			subscribeToTopics(symbols)
@@ -413,9 +365,6 @@ func printLastMessages() {
 func main() {
 	log.Println("Starting futures data ingester...")
 
-	// Create a database manager
-	dbManager = NewDatabaseManager()
-
 	// Initialize and connect
 	InitializeAndConnect()
 
@@ -433,7 +382,6 @@ func main() {
 
 	// Close database connection
 	log.Println("Closing database connection...")
-	dbManager.Close()
 
 	// Close WebSocket connection
 	if conn != nil {
