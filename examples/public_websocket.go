@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -27,20 +26,18 @@ var (
 
 // Symbol represents a trading symbol
 type Symbol struct {
-	Symbol            string `json:"symbol"`
+	Name              string `json:"name"`
 	BaseAsset         string `json:"baseAsset"`
 	QuoteAsset        string `json:"quoteAsset"`
-	PricePrecision    int    `json:"pricePrecision"`
-	QuantityPrecision int    `json:"quantityPrecision"`
+	PricePrecision    string `json:"pricePrecision"`
+	QuantityPrecision string `json:"quantityPrecision"`
 	ContractName      string `json:"contractName"`
-	ContractType      string `json:"contractType"`
-	Market            string `json:"market"`
 }
 
 // ExchangeInfo represents the exchange information format
 type ExchangeInfo struct {
-	Markets   []string          `json:"markets"`
-	Contracts []json.RawMessage `json:"contracts"`
+	Markets   []string `json:"markets"`
+	Contracts []Symbol `json:"contracts"`
 }
 
 // InitializeAndConnect initializes the database and connects to WebSocket
@@ -49,13 +46,31 @@ func InitializeAndConnect() {
 
 	// Connect to WebSocket
 	log.Println("Connecting to WebSocket server...")
+	// Set up WebSocket handlers
+
 	conn, err = connectWebSocket()
 	if err != nil {
 		log.Fatalf("Failed to connect to WebSocket: %v", err)
 	}
+	log.Println("WebSocket connection established")
+	// Socket.IO connection established
+	// log.Println("Socket.IO connection established")
 
-	// Set up WebSocket handlers
-	go handleWebSocketMessages()
+	// // Fetch symbols and subscribe to topics
+	// symbols, err := fetchFuturesSymbols()
+	// if err != nil {
+	// 	log.Printf("Error fetching symbols: %v", err)
+	// 	return
+	// }
+	// log.Printf("Fetched %d symbols", len(symbols))
+
+	// if len(symbols) > 0 {
+	// 	log.Printf("Found %d symbols", len(symbols))
+
+	// 	// Subscribe to topics
+	// 	subscribeToTopics(symbols)
+	// }
+	handleWebSocketMessages()
 }
 
 // ConnectWebSocket connects to the WebSocket server
@@ -116,6 +131,23 @@ func processWebSocketMessage(msg string) {
 	case msg == "0":
 		// Socket.IO open packet
 		log.Println("Socket.IO connection opened")
+
+	case strings.HasPrefix(msg, "1"):
+		// Socket.IO close packet
+		log.Println("Socket.IO connection closed by server")
+
+	case msg == "2":
+		// Socket.IO ping - respond with pong
+		log.Println("Received ping, sending pong")
+		err := websocket.Message.Send(conn, "3")
+		if err != nil {
+			log.Printf("Error sending pong: %v", err)
+		}
+
+	case msg == "3":
+		// Socket.IO pong
+		log.Println("Received pong")
+
 	case msg == "40":
 		// Socket.IO connection established
 		log.Println("Socket.IO connection established")
@@ -126,6 +158,7 @@ func processWebSocketMessage(msg string) {
 			log.Printf("Error fetching symbols: %v", err)
 			return
 		}
+		log.Printf("Fetched %d symbols", len(symbols))
 
 		if len(symbols) > 0 {
 			log.Printf("Found %d symbols", len(symbols))
@@ -160,7 +193,7 @@ func processWebSocketMessage(msg string) {
 }
 
 // FetchFuturesSymbols fetches futures symbols from local JSON file
-func fetchFuturesSymbols() ([]Symbol, error) {
+func fetchFuturesSymbols() ([]string, error) {
 	// Read exchange info from local file
 	exchangeInfoPath := filepath.Join(".", "exchangeInfo.json")
 
@@ -194,42 +227,22 @@ func fetchFuturesSymbols() ([]Symbol, error) {
 	}
 
 	// Map contracts to symbols
-	var symbols []Symbol
+	var symbols []string
 	for _, contractJSON := range exchangeInfo.Contracts {
-		var contract map[string]interface{}
-		err = json.Unmarshal(contractJSON, &contract)
-		if err != nil {
-			log.Printf("Error parsing contract: %v", err)
-			continue
-		}
+		// var contract []Symbol
+		// err = json.Unmarshal(contractJSON, &contract)
+		// if err != nil {
+		// 	log.Printf("Error parsing contract: %v", err)
+		// 	continue
+		// }
 
-		// Extract symbol information
-		symbol := Symbol{
-			Symbol:       contract["name"].(string),
-			BaseAsset:    contract["baseAsset"].(string),
-			QuoteAsset:   contract["quoteAsset"].(string),
-			ContractName: contract["contractName"].(string),
-		}
+		// symbol := Symbol{
+		// 	Name:       contract["symbol"].(string),
+		// 	BaseAsset:  contract["baseAsset"].(string),
+		// 	QuoteAsset: contract["quoteAsset"].(string),
+		// }
 
-		// Parse precision values
-		if pricePrecision, ok := contract["pricePrecision"].(string); ok {
-			symbol.PricePrecision, _ = strconv.Atoi(pricePrecision)
-		}
-
-		if quantityPrecision, ok := contract["quantityPrecision"].(string); ok {
-			symbol.QuantityPrecision, _ = strconv.Atoi(quantityPrecision)
-		}
-
-		// Add contract type and market if available
-		if contractType, ok := contract["contractType"].(string); ok {
-			symbol.ContractType = contractType
-		}
-
-		if market, ok := contract["market"].(string); ok {
-			symbol.Market = market
-		}
-
-		symbols = append(symbols, symbol)
+		symbols = append(symbols, contractJSON.Name)
 	}
 
 	// Log sample of symbols
@@ -240,7 +253,7 @@ func fetchFuturesSymbols() ([]Symbol, error) {
 	}
 
 	for i := 0; i < sampleCount; i++ {
-		log.Printf("- %s (%s/%s)", symbols[i].Symbol, symbols[i].BaseAsset, symbols[i].QuoteAsset)
+		log.Printf("- %s (%s/%s)", symbols[i])
 	}
 
 	if len(symbols) > 10 {
@@ -251,7 +264,7 @@ func fetchFuturesSymbols() ([]Symbol, error) {
 }
 
 // SubscribeToTopics subscribes to WebSocket topics for all symbols
-func subscribeToTopics(symbols []Symbol) {
+func subscribeToTopics(symbols []string) {
 	if conn == nil {
 		log.Println("WebSocket not initialized")
 		return
@@ -278,7 +291,7 @@ func subscribeToTopics(symbols []Symbol) {
 
 	// Add symbol-specific topics
 	for _, symbol := range symbols {
-		lowerSymbol := strings.ToLower(symbol.Symbol)
+		lowerSymbol := strings.ToLower(symbol)
 		for _, topic := range symbolTopics {
 			topics = append(topics, fmt.Sprintf("%s@%s", lowerSymbol, topic))
 		}
@@ -286,6 +299,7 @@ func subscribeToTopics(symbols []Symbol) {
 
 	// Add all-symbol topics
 	topics = append(topics, allSymbolTopics...)
+	topics = allSymbolTopics[:]
 
 	log.Printf("Subscribing to %d topics", len(topics))
 
@@ -379,9 +393,6 @@ func main() {
 	// Print and save last messages
 	printLastMessages()
 	saveLastMessages()
-
-	// Close database connection
-	log.Println("Closing database connection...")
 
 	// Close WebSocket connection
 	if conn != nil {
