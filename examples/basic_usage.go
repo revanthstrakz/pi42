@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"path/filepath"
-	"pi42"
+
+	"github.com/revanthstrakz/pi42"
 
 	"github.com/joho/godotenv"
 )
@@ -29,7 +29,6 @@ func main() {
 	// Run examples
 	publicAPIExamples(client)
 	authenticatedAPIExamples(client)
-	socketioExample(client)
 }
 
 func publicAPIExamples(client *pi42.Client) {
@@ -121,56 +120,5 @@ func authenticatedAPIExamples(client *pi42.Client) {
 		fmt.Printf("Error getting positions: %v\n", err)
 	} else {
 		fmt.Printf("Open Positions: Found %d open positions\n", len(positions))
-	}
-}
-
-func socketioExample(client *pi42.Client) {
-	fmt.Println("\n=== Socketio Example ===")
-
-	// Track received messages
-	receivedMessages := 0
-
-	// Create a function to handle incoming data
-	handleTicker := func(data map[string]interface{}) {
-		receivedMessages++
-		fmt.Printf("Received ticker update for %v: Price = %v\n", data["s"], data["c"])
-	}
-
-	// Register the callback
-	client.Socketio.On("24hrTicker", handleTicker)
-
-	// Connect to Socketio and subscribe to BTCINR ticker
-	fmt.Println("Connecting to Socketio and subscribing to BTCINR ticker...")
-	err := client.Socketio.ConnectPublic([]string{"btcinr@ticker"})
-	if err != nil {
-		fmt.Printf("Socketio connection error: %v\n", err)
-		return
-	}
-
-	// Wait for some data
-	fmt.Println("Waiting for data (will exit after 30 seconds or when data is received)...")
-
-	// Wait up to 30 seconds for data
-	timeout := time.After(30 * time.Second)
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-timeout:
-			if receivedMessages == 0 {
-				fmt.Println("No ticker updates received within timeout period")
-			} else {
-				fmt.Printf("Received %d ticker updates\n", receivedMessages)
-			}
-			client.Socketio.Close()
-			return
-		case <-ticker.C:
-			if receivedMessages > 0 {
-				fmt.Printf("Received %d ticker updates\n", receivedMessages)
-				client.Socketio.Close()
-				return
-			}
-		}
 	}
 }

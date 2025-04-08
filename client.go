@@ -27,7 +27,6 @@ type Client struct {
 	Wallet   *WalletAPI
 	Exchange *ExchangeAPI
 	UserData *UserDataAPI
-	Socketio *SocketioManager
 }
 
 // NewClient creates a new Pi42 API client
@@ -47,7 +46,6 @@ func NewClient(apiKey, apiSecret string) *Client {
 	client.Wallet = NewWalletAPI(client)
 	client.Exchange = NewExchangeAPI(client)
 	client.UserData = NewUserDataAPI(client)
-	client.Socketio = NewSocketioManager(client)
 
 	return client
 }
