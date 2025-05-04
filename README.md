@@ -1,6 +1,8 @@
 # Pi42 Go Client
 
-A Go client for the Pi42 cryptocurrency exchange API.
+## About
+
+This Go client library provides a comprehensive and easy-to-use interface for the Pi42 cryptocurrency exchange API. It enables developers to build trading systems, market data applications, and automated trading bots with minimal effort. The library handles all the complexities of API authentication, rate limiting, WebSocket connections, and data processing, allowing you to focus on your trading strategies and application logic.
 
 ## Overview
 
