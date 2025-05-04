@@ -1,4 +1,3 @@
-
 # Pi42 Go Client
 
 A Go client for the Pi42 cryptocurrency exchange API.
@@ -126,6 +125,133 @@ client.Socketio.On("24hrTicker", handleTicker)
 
 // Connect and subscribe to BTCINR ticker
 client.Socketio.ConnectPublic([]string{"btcinr@ticker"})
+```
+
+## WebSocket Data Streams
+
+The library provides a dedicated WebSocket client for subscribing to real-time market data streams.
+
+### Creating a WebSocket Client
+
+```go
+import (
+    "fmt"
+    "time"
+    
+    "github.com/revanthstrakz/pi42"
+    "github.com/zishang520/engine.io/v2/utils"
+)
+
+func main() {
+    // Create a new WebSocket client
+    client := pi42.NewSocketClient()
+    
+    // Start the client in a background goroutine
+    go client.Init()
+    
+    // Use the client to subscribe to streams
+    // ...
+}
+```
+
+### Subscribing to Data Streams
+
+```go
+// Subscribe to specific topics
+client.AddStream("btcinr@depth_0.1", "depthUpdate")
+client.AddStream("btcinr@markPrice", "markPriceUpdate")
+client.AddStream("btcinr@kline_1m", "kline")
+
+// Wait for connection to establish
+time.Sleep(2 * time.Second)
+
+// Subscribe to more streams later as needed
+client.AddStream("ethinr@markPrice", "markPriceUpdate")
+```
+
+### Receiving Data via Channels
+
+```go
+// Get channel for a specific event type
+markPriceChannel, exists := client.GetEventChannel("markPriceUpdate")
+if exists {
+    go func() {
+        for event := range markPriceChannel {
+            fmt.Printf("Mark price update received: %v\n", event.Data)
+        }
+    }()
+}
+
+// Get channel for another event type
+klineChannel, exists := client.GetEventChannel("kline")
+if exists {
+    go func() {
+        for event := range klineChannel {
+            fmt.Printf("Kline data received - Topic: %s, Data: %v\n", 
+                event.Topic, event.Data)
+        }
+    }()
+}
+```
+
+### Unsubscribing from Streams
+
+```go
+// Remove a specific stream while keeping the event channel active
+client.RemoveStream("btcinr@markPrice")
+// The markPriceUpdate channel remains active for other subscribed topics
+```
+
+### Supported Event Types
+
+The WebSocket client supports the following event types:
+
+- `depthUpdate`: Order book updates
+- `markPriceUpdate`: Mark price updates
+- `kline`: Candlestick/kline data
+- `aggTrade`: Aggregated trade data
+- `24hrTicker`: 24-hour ticker updates
+- `marketInfo`: Market information
+- `tickerArr`: Array of ticker data
+- `markPriceArr`: Array of mark prices
+- `allContractDetails`: Contract detail updates
+
+### Example Usage
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    
+    "github.com/revanthstrakz/pi42"
+)
+
+func main() {
+    // Create a new WebSocket client
+    client := pi42.NewSocketClient()
+    
+    // Subscribe to topics
+    client.AddStream("btcinr@depth_0.1", "depthUpdate")
+    client.AddStream("btcinr@kline_1m", "kline")
+    
+    // Setup handlers for event channels
+    klineChannel, exists := client.GetEventChannel("kline")
+    if exists {
+        go func() {
+            for event := range klineChannel {
+                fmt.Printf("Kline data: %v\n", event.Data)
+            }
+        }()
+    }
+    
+    // Start the client
+    go client.Init()
+    
+    // Keep the main process running
+    select {}
+}
 ```
 
 ## Error Handling
