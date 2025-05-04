@@ -13,6 +13,11 @@ import (
 )
 
 func main() {
+	// BasicUsageExample()
+	DataStreamExample()
+}
+
+func BasicUsageExample() {
 	// Load environment variables from .env file
 	err := godotenv.Load(filepath.Join("..", ".env"))
 	if err != nil {
