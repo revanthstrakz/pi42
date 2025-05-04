@@ -29,6 +29,7 @@ func main() {
 	// Run examples
 	publicAPIExamples(client)
 	authenticatedAPIExamples(client)
+	OrderExample(client)
 }
 
 func publicAPIExamples(client *pi42.Client) {
@@ -81,6 +82,7 @@ func publicAPIExamples(client *pi42.Client) {
 			fmt.Printf("First candle: Open=%v, Close=%v\n", klines[0]["open"], klines[0]["close"])
 		}
 	}
+
 }
 
 func authenticatedAPIExamples(client *pi42.Client) {

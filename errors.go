@@ -7,6 +7,7 @@ type APIError struct {
 	StatusCode int    `json:"-"`
 	ErrorCode  int    `json:"code"`
 	Message    string `json:"message"`
+	Details    string `json:"details"`
 }
 
 // Error implements the error interface

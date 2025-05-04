@@ -1,4 +1,6 @@
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/revanthstrakz/gotalipp v0.0.0-20250504055716-45c45160766a h1:nPtTiq7uELOnzgoybq/40m2bHPHVt0wq1n3nZe9UsM0=
+github.com/revanthstrakz/gotalipp v0.0.0-20250504055716-45c45160766a/go.mod h1:03x0HiT2yaivNvHRt+Ig8p2lbVUpI+tt8x9DoT6xdKg=
 golang.org/x/net v0.38.0 h1:vRMAPTMaeGqVhG5QyLJHqNDwecKTomGeqbnfZyKlBI8=
 golang.org/x/net v0.38.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=

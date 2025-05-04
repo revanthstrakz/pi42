@@ -18,6 +18,7 @@ func NewPositionAPI(client *Client) *PositionAPI {
 }
 
 // PositionQueryParams represents parameters for querying positions
+// PositionQueryParams represents parameters for querying positions
 type PositionQueryParams struct {
 	StartTimestamp int64  `json:"startTimestamp,omitempty"`
 	EndTimestamp   int64  `json:"endTimestamp,omitempty"`
@@ -26,8 +27,37 @@ type PositionQueryParams struct {
 	Symbol         string `json:"symbol,omitempty"`
 }
 
+// Position represents a trading position
+type Position struct {
+	ID                        int     `json:"id"`
+	PositionID                string  `json:"positionId"`
+	BaseAsset                 string  `json:"baseAsset"`
+	QuoteAsset                string  `json:"quoteAsset"`
+	ContractPair              string  `json:"contractPair"`
+	ContractType              string  `json:"contractType"`
+	EntryPrice                float64 `json:"entryPrice"`
+	Leverage                  int     `json:"leverage"`
+	LiquidationPrice          float64 `json:"liquidationPrice"`
+	MaintenanceMarginPercentage float64 `json:"maintenanceMarginPercentage"`
+	Margin                    float64 `json:"margin"`
+	MarginAsset               string  `json:"marginAsset"`
+	MarginConversionRate      float64 `json:"marginConversionRate"`
+	MarginInMarginAsset       float64 `json:"marginInMarginAsset"`
+	MarginSettlementRate      float64 `json:"marginSettlementRate"`
+	MarginType                string  `json:"marginType"`
+	PositionAmount            float64 `json:"positionAmount"`
+	PositionSize              float64 `json:"positionSize"`
+	PositionStatus            string  `json:"positionStatus"`
+	PositionType              string  `json:"positionType"`
+	Quantity                  float64 `json:"quantity"`
+	RealizedProfit            float64 `json:"realizedProfit"`
+	RealizedProfitInMarginAsset *float64 `json:"realizedProfitInMarginAsset"`
+	CreatedAt                 string  `json:"createdAt"`
+	IconUrl                   string  `json:"iconUrl"`
+}
+
 // GetPositions retrieves positions based on their status
-func (api *PositionAPI) GetPositions(positionStatus string, params PositionQueryParams) ([]map[string]interface{}, error) {
+func (api *PositionAPI) GetPositions(positionStatus string, params PositionQueryParams) ([]Position, error) {
 	endpoint := fmt.Sprintf("/v1/positions/%s", strings.ToUpper(positionStatus))
 
 	queryParams := make(map[string]string)
@@ -53,7 +83,7 @@ func (api *PositionAPI) GetPositions(positionStatus string, params PositionQuery
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []Position
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
