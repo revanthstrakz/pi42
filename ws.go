@@ -199,7 +199,7 @@ func (sc *SocketClient) Init() {
 	}
 }
 
-// Function to subscribe to various WebSocket topics
+// Helper function to subscribe to configured topics
 func subscribeToTopics(sc *SocketClient) {
 	if len(sc.topics) == 0 {
 		utils.Log().Info("No topics to subscribe to")

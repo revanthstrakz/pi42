@@ -16,6 +16,7 @@ func NewWalletAPI(client *Client) *WalletAPI {
 }
 
 // FuturesWalletDetails gets all details of Futures wallet
+// marginAsset: Asset to query wallet details for (e.g., "INR", "USDT")
 func (api *WalletAPI) FuturesWalletDetails(marginAsset string) (map[string]interface{}, error) {
 	endpoint := "/v1/wallet/futures-wallet/details"
 
@@ -40,6 +41,7 @@ func (api *WalletAPI) FuturesWalletDetails(marginAsset string) (map[string]inter
 }
 
 // FundingWalletDetails gets details of funding wallet
+// marginAsset: Asset to query wallet details for (e.g., "INR", "USDT")
 func (api *WalletAPI) FundingWalletDetails(marginAsset string) (map[string]interface{}, error) {
 	endpoint := "/v1/wallet/funding-wallet/details"
 

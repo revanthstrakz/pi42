@@ -19,8 +19,6 @@ func NewMarketAPI(client *Client) *MarketAPI {
 // GetTicker24hr gets 24-hour ticker data for a specific trading pair
 func (api *MarketAPI) GetTicker24hr(contractPair string) (map[string]interface{}, error) {
 	endpoint := fmt.Sprintf("/v1/market/ticker24Hr/%s", strings.ToLower(contractPair))
-
-	// Use proper params map instead of nil
 	params := make(map[string]string)
 
 	data, err := api.client.Get(endpoint, params, true)
@@ -72,11 +70,11 @@ func (api *MarketAPI) GetDepth(contractPair string) (map[string]interface{}, err
 
 // KlinesParams represents parameters for the Klines method
 type KlinesParams struct {
-	Pair      string `json:"pair"`
-	Interval  string `json:"interval"`
-	StartTime int64  `json:"startTime,omitempty"`
-	EndTime   int64  `json:"endTime,omitempty"`
-	Limit     int    `json:"limit,omitempty"`
+	Pair      string `json:"pair"`      // Trading pair (e.g., "BTCINR")
+	Interval  string `json:"interval"`  // Kline interval (e.g., "1m", "1h", "1d")
+	StartTime int64  `json:"startTime,omitempty"` // Optional start time in milliseconds
+	EndTime   int64  `json:"endTime,omitempty"`   // Optional end time in milliseconds
+	Limit     int    `json:"limit,omitempty"`     // Optional limit on number of results
 }
 
 // GetKlines gets candlestick (kline) data for a specific trading pair and interval
@@ -104,9 +102,7 @@ func (api *MarketAPI) GetKlines(params KlinesParams) ([]map[string]interface{}, 
 		return nil, err
 	}
 
-	// Fix the parsing for the klines response
-	// The API seems to be returning valid data but it's treated as an error
-	// Let's try to parse it as a successful response even if status code isn't 200
+	// Parse the response as a JSON array
 	var result []map[string]interface{}
 
 	// Check if the data starts with '[' which indicates a JSON array
