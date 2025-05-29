@@ -25,8 +25,8 @@ type DataQueryParams struct {
 	Symbol         string `json:"symbol,omitempty"`
 }
 
-// GetTradeHistory retrieves the trade history for a user
-func (api *UserDataAPI) GetTradeHistory(params DataQueryParams) ([]map[string]interface{}, error) {
+// GetTradeHistory retrieves the trade history for a user with structured response
+func (api *UserDataAPI) GetTradeHistory(params DataQueryParams) ([]TradeHistoryItem, error) {
 	endpoint := "/v1/user-data/trade-history"
 
 	queryParams := make(map[string]string)
@@ -52,7 +52,7 @@ func (api *UserDataAPI) GetTradeHistory(params DataQueryParams) ([]map[string]in
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []TradeHistoryItem
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
@@ -67,8 +67,8 @@ type TransactionHistoryParams struct {
 	PositionID string `json:"positionId,omitempty"`
 }
 
-// GetTransactionHistory retrieves the transaction history for a user
-func (api *UserDataAPI) GetTransactionHistory(params TransactionHistoryParams) ([]map[string]interface{}, error) {
+// GetTransactionHistory retrieves the transaction history for a user with structured response
+func (api *UserDataAPI) GetTransactionHistory(params TransactionHistoryParams) ([]TransactionHistoryItem, error) {
 	endpoint := "/v1/user-data/transaction-history"
 
 	queryParams := make(map[string]string)
@@ -100,7 +100,7 @@ func (api *UserDataAPI) GetTransactionHistory(params TransactionHistoryParams) (
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []TransactionHistoryItem
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}

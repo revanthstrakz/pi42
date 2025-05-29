@@ -20,21 +20,21 @@ func NewOrderAPI(client *Client) *OrderAPI {
 
 // PlaceOrderParams represents parameters for placing an order
 type PlaceOrderParams struct {
-	Symbol          string  `json:"symbol"`
-	Side            string  `json:"side"`
-	Type            string  `json:"type"`
-	Quantity        float64 `json:"quantity"`
-	PlaceType       string  `json:"placeType"`
-	MarginAsset     string  `json:"marginAsset"`
-	Price           float64 `json:"price,omitempty"`
-	ReduceOnly      bool    `json:"reduceOnly"`
-	TakeProfitPrice float64 `json:"takeProfitPrice,omitempty"`
-	StopLossPrice   float64 `json:"stopLossPrice,omitempty"`
-	StopPrice       float64 `json:"stopPrice,omitempty"`
-	PositionID      string  `json:"positionId,omitempty"`
-	DeviceType      string  `json:"deviceType"`
-	UserCategory    string  `json:"userCategory"`
-	Leverage        int     `json:"leverage,omitempty"`
+	Symbol          string    `json:"symbol"`
+	Side            OrderSide `json:"side"`
+	Type            OrderType `json:"type"`
+	Quantity        float64   `json:"quantity"`
+	PlaceType       string    `json:"placeType"`
+	MarginAsset     string    `json:"marginAsset"`
+	Price           float64   `json:"price,omitempty"`
+	ReduceOnly      bool      `json:"reduceOnly"`
+	TakeProfitPrice float64   `json:"takeProfitPrice,omitempty"`
+	StopLossPrice   float64   `json:"stopLossPrice,omitempty"`
+	StopPrice       float64   `json:"stopPrice,omitempty"`
+	PositionID      string    `json:"positionId,omitempty"`
+	DeviceType      string    `json:"deviceType"`
+	UserCategory    string    `json:"userCategory"`
+	Leverage        int       `json:"leverage,omitempty"`
 }
 
 // OrderResponse represents the structured response when placing an order
@@ -177,8 +177,8 @@ type OrderQueryParams struct {
 	Symbol         string `json:"symbol,omitempty"`
 }
 
-// GetOpenOrders retrieves open orders for the account
-func (api *OrderAPI) GetOpenOrders(params OrderQueryParams) ([]map[string]interface{}, error) {
+// GetOpenOrders retrieves open orders for the account with structured response
+func (api *OrderAPI) GetOpenOrders(params OrderQueryParams) ([]OpenOrder, error) {
 	endpoint := "/v1/order/open-orders"
 
 	queryParams := make(map[string]string)
@@ -204,7 +204,7 @@ func (api *OrderAPI) GetOpenOrders(params OrderQueryParams) ([]map[string]interf
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []OpenOrder
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
@@ -212,8 +212,8 @@ func (api *OrderAPI) GetOpenOrders(params OrderQueryParams) ([]map[string]interf
 	return result, nil
 }
 
-// GetOrderHistory retrieves historical order data for the account
-func (api *OrderAPI) GetOrderHistory(params OrderQueryParams) ([]map[string]interface{}, error) {
+// GetOrderHistory retrieves historical order data with structured response
+func (api *OrderAPI) GetOrderHistory(params OrderQueryParams) ([]OrderHistoryItem, error) {
 	endpoint := "/v1/order/order-history"
 
 	queryParams := make(map[string]string)
@@ -239,7 +239,7 @@ func (api *OrderAPI) GetOrderHistory(params OrderQueryParams) ([]map[string]inte
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []OrderHistoryItem
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
@@ -248,7 +248,7 @@ func (api *OrderAPI) GetOrderHistory(params OrderQueryParams) ([]map[string]inte
 }
 
 // GetLinkedOrders retrieves orders that are linked by a specific link ID
-func (api *OrderAPI) GetLinkedOrders(linkID string) ([]map[string]interface{}, error) {
+func (api *OrderAPI) GetLinkedOrders(linkID string) ([]LinkedOrder, error) {
 	endpoint := fmt.Sprintf("/v1/order/linked-orders/%s", linkID)
 
 	data, err := api.client.Get(endpoint, nil, false)
@@ -256,7 +256,7 @@ func (api *OrderAPI) GetLinkedOrders(linkID string) ([]map[string]interface{}, e
 		return nil, err
 	}
 
-	var result []map[string]interface{}
+	var result []LinkedOrder
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
@@ -300,7 +300,7 @@ func (api *OrderAPI) FetchMarginHistory(params OrderQueryParams) (map[string]int
 }
 
 // DeleteOrder deletes a specific order based on its client order ID
-func (api *OrderAPI) DeleteOrder(clientOrderID string) (map[string]interface{}, error) {
+func (api *OrderAPI) DeleteOrder(clientOrderID string) (*OrderCancelResponse, error) {
 	endpoint := "/v1/order/delete-order"
 
 	params := map[string]interface{}{
@@ -312,16 +312,16 @@ func (api *OrderAPI) DeleteOrder(clientOrderID string) (map[string]interface{}, 
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result OrderCancelResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
-// CancelAllOrders cancels all open orders
-func (api *OrderAPI) CancelAllOrders() (map[string]interface{}, error) {
+// CancelAllOrders cancels all open orders with structured response
+func (api *OrderAPI) CancelAllOrders() (*BatchCancelResponse, error) {
 	endpoint := "/v1/order/cancel-all-orders"
 
 	data, err := api.client.Delete(endpoint, map[string]interface{}{})
@@ -329,25 +329,25 @@ func (api *OrderAPI) CancelAllOrders() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result BatchCancelResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // BulletParams represents simplified parameters for quick order placement
 type BulletParams struct {
-	Symbol     string  // Trading pair symbol
-	Side       string  // BUY or SELL
-	OrderType  string  // MARKET, LIMIT, STOP_MARKET, or STOP_LIMIT
-	Price      float64 // Required for LIMIT and STOP_LIMIT orders
-	StopPrice  float64 // Required for STOP_MARKET and STOP_LIMIT orders
-	Count      float64 // Multiplier for minimum quantity
-	ReduceOnly bool    // Whether this is a reduce-only order
-	Leverage   int     // Leverage to use for the order (optional)
-	PositionID string  // Position ID for the order (optional)
+	Symbol     string    // Trading pair symbol
+	Side       OrderSide // BUY or SELL
+	OrderType  OrderType // MARKET, LIMIT, STOP_MARKET, or STOP_LIMIT
+	Price      float64   // Required for LIMIT and STOP_LIMIT orders
+	StopPrice  float64   // Required for STOP_MARKET and STOP_LIMIT orders
+	Count      float64   // Multiplier for minimum quantity
+	ReduceOnly bool      // Whether this is a reduce-only order
+	Leverage   int       // Leverage to use for the order (optional)
+	PositionID string    // Position ID for the order (optional)
 }
 
 // Bullet creates an order using exchange specifications for precision and minimum quantity
@@ -360,7 +360,7 @@ func (api *OrderAPI) Bullet(params BulletParams) (*OrderResponse, error) {
 	}
 
 	// Validate order type
-	validOrderTypes := []string{"MARKET", "LIMIT", "STOP_MARKET", "STOP_LIMIT"}
+	validOrderTypes := []OrderType{"MARKET", "LIMIT", "STOP_MARKET", "STOP_LIMIT"}
 	isValidType := false
 	for _, orderType := range validOrderTypes {
 		if params.OrderType == orderType {
@@ -485,8 +485,6 @@ func (api *OrderAPI) Bullet(params BulletParams) (*OrderResponse, error) {
 
 	return &orderResponse, nil
 }
-
-// BulletMap is the same as Bullet but returns the raw map response for backward compatibility
 func (api *OrderAPI) BulletMap(params BulletParams) (OrderResponse, error) {
 	// Get contract info for the symbol
 	contractInfo, ok := api.client.ExchangeInfo[params.Symbol]
@@ -495,7 +493,7 @@ func (api *OrderAPI) BulletMap(params BulletParams) (OrderResponse, error) {
 	}
 
 	// Validate order type
-	validOrderTypes := []string{"MARKET", "LIMIT", "STOP_MARKET", "STOP_LIMIT"}
+	validOrderTypes := []OrderType{"MARKET", "LIMIT", "STOP_MARKET", "STOP_LIMIT"}
 	isValidType := false
 	for _, orderType := range validOrderTypes {
 		if params.OrderType == orderType {

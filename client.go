@@ -27,46 +27,12 @@ type ContractInfo struct {
 	MaxQuantity       float64
 	MarketMinQuantity float64
 	MarketMaxQuantity float64
-	OrderTypes        []string
+	OrderTypes        []OrderType
 	MaxLeverage       float64
 	MarginAssets      []string
 	ContractType      string
 	LiquidationFee    float64
 	Tags              []string
-}
-
-// ExchangeInfoResponse represents the structure of the exchange info API response
-type ExchangeInfoResponse struct {
-	Markets   []string       `json:"markets"`
-	Contracts []ContractData `json:"contracts"`
-}
-
-// ContractData represents the raw contract data from the API
-type ContractData struct {
-	Name                  string   `json:"name"`
-	ContractName          string   `json:"contractName"`
-	Slug                  string   `json:"slug"`
-	Tags                  []string `json:"tags"`
-	Filters               []Filter `json:"filters"`
-	MakerFee              float64  `json:"makerFee"`
-	TakerFee              float64  `json:"takerFee"`
-	BaseAsset             string   `json:"baseAsset"`
-	OrderTypes            []string `json:"orderTypes"`
-	QuoteAsset            string   `json:"quoteAsset"`
-	MaxLeverage           string   `json:"maxLeverage"`
-	ContractType          string   `json:"contractType"`
-	PricePrecision        string   `json:"pricePrecision"`
-	QuantityPrecision     string   `json:"quantityPrecision"`
-	MarginAssetsSupported []string `json:"marginAssetsSupported"`
-}
-
-// Filter represents trading filters applied to contracts
-type Filter struct {
-	FilterType string `json:"filterType"`
-	MinQty     string `json:"minQty,omitempty"`
-	MaxQty     string `json:"maxQty,omitempty"`
-	Limit      string `json:"limit,omitempty"`
-	Notional   string `json:"notional,omitempty"`
 }
 
 // Client represents the API client for Pi42

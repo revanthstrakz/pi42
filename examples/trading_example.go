@@ -45,7 +45,7 @@ func tradeex() {
 
 	// Get active positions
 	fmt.Println("\n=== Position Information ===")
-	activePositions := getPositions(client, "OPEN")
+	activePositions, _ := client.Position.GetPositions(pi42.PositionStatusOpen, pi42.PositionQueryParams{})
 
 	// Find a position for the specified symbol
 	var positionID string
@@ -85,8 +85,8 @@ func checkWalletBalance(client *pi42.Client) {
 	}
 
 	fmt.Printf("Futures Wallet:\n")
-	fmt.Printf("  Available Balance: %v INR\n", futuresWallet["withdrawableBalance"])
-	fmt.Printf("  Total Balance: %v INR\n", futuresWallet["balance"])
+	fmt.Printf("  Available Balance: %v INR\n", futuresWallet.WithdrawableBalance)
+	fmt.Printf("  Total Balance: %v INR\n", futuresWallet.WalletBalance)
 
 	// Get funding wallet details
 	fundingWallet, err := client.Wallet.FundingWalletDetails("INR")
@@ -96,8 +96,8 @@ func checkWalletBalance(client *pi42.Client) {
 	}
 
 	fmt.Printf("Funding Wallet:\n")
-	fmt.Printf("  Available Balance: %v INR\n", fundingWallet["withdrawableBalance"])
-	fmt.Printf("  Total Balance: %v INR\n", fundingWallet["balance"])
+	fmt.Printf("  Available Balance: %v INR\n", fundingWallet.WithdrawableBalance)
+	fmt.Printf("  Total Balance: %v INR\n", fundingWallet.WalletBalance)
 }
 
 // getContractInfo gets and displays information about a specific trading contract
@@ -206,30 +206,6 @@ func placeOrders(client *pi42.Client, symbol string) {
 	}
 }
 
-// getPositions retrieves and displays positions based on their status
-func getPositions(client *pi42.Client, status string) []pi42.Position {
-	positions, err := client.Position.GetPositions(status, pi42.PositionQueryParams{})
-	if err != nil {
-		log.Printf("Error getting positions: %v\n", err)
-		return nil
-	}
-
-	fmt.Printf("%s Positions: Found %d positions\n", status, len(positions))
-	for i, pos := range positions {
-		fmt.Printf("Position %d:\n", i+1)
-		fmt.Printf("  Symbol: %s\n", pos.ContractPair)
-		fmt.Printf("  Position ID: %s\n", pos.PositionID)
-		fmt.Printf("  Type: %s\n", pos.PositionType)
-		fmt.Printf("  Size: %f\n", pos.PositionSize)
-		fmt.Printf("  Entry Price: %f\n", pos.EntryPrice)
-		fmt.Printf("  Margin: %f %s\n", pos.Margin, pos.MarginAsset)
-		fmt.Printf("  Leverage: %d\n", pos.Leverage)
-		fmt.Printf("  Liquidation Price: %f\n", pos.LiquidationPrice)
-	}
-
-	return positions
-}
-
 // managePosition demonstrates how to manage an existing position
 func managePosition(client *pi42.Client, positionID string) {
 	// Get position details
@@ -265,12 +241,12 @@ func managePosition(client *pi42.Client, positionID string) {
 	// Place a take profit order for this position
 	fmt.Println("Placing take profit order for position...")
 	takeProfitOrder, err := client.Order.PlaceOrder(pi42.PlaceOrderParams{
-		Symbol:      positionDetails["contractPair"].(string),
+		Symbol:      positionDetails.BaseAsset + positionDetails.QuoteAsset,
 		Side:        "SELL", // Assuming it's a long position
 		Type:        "LIMIT",
-		Quantity:    positionDetails["positionSize"].(float64),      // Close entire position
-		Price:       positionDetails["entryPrice"].(float64) * 1.05, // 5% profit
-		MarginAsset: positionDetails["marginAsset"].(string),
+		Quantity:    positionDetails.PositionSize,
+		Price:       positionDetails.EntryPrice * 1.05, // 5% profit
+		MarginAsset: positionDetails.MarginAsset,
 		ReduceOnly:  true,
 		PositionID:  positionID,
 		PlaceType:   "POSITION", // Specify this is for a specific position
@@ -298,14 +274,14 @@ func getOrderHistory(client *pi42.Client, symbol string) {
 	fmt.Printf("Order History: Found %d orders\n", len(orders))
 	for i, order := range orders {
 		fmt.Printf("Order %d:\n", i+1)
-		fmt.Printf("  ID: %v\n", order["id"])
-		fmt.Printf("  Symbol: %v\n", order["symbol"])
-		fmt.Printf("  Type: %v\n", order["type"])
-		fmt.Printf("  Side: %v\n", order["side"])
-		fmt.Printf("  Price: %v\n", order["price"])
-		fmt.Printf("  Quantity: %v\n", order["orderAmount"])
-		fmt.Printf("  Status: %v\n", order["status"])
-		fmt.Printf("  Created At: %v\n", order["createdAt"])
+		fmt.Printf("  ID: %v\n", order.ClientOrderID)
+		fmt.Printf("  Symbol: %v\n", order.Symbol)
+		fmt.Printf("  Type: %v\n", order.Type)
+		fmt.Printf("  Side: %v\n", order.Side)
+		fmt.Printf("  Price: %v\n", order.Price)
+		fmt.Printf("  Quantity: %v\n", order.ExecutedQty)
+		fmt.Printf("  Status: %v\n", order.Status)
+		fmt.Printf("  Created At: %v\n", order.UpdatedAt)
 	}
 
 	// Get open orders
@@ -320,12 +296,12 @@ func getOrderHistory(client *pi42.Client, symbol string) {
 	fmt.Printf("Open Orders: Found %d orders\n", len(openOrders))
 	for i, order := range openOrders {
 		fmt.Printf("Order %d:\n", i+1)
-		fmt.Printf("  ID: %v\n", order["id"])
-		fmt.Printf("  Symbol: %v\n", order["symbol"])
-		fmt.Printf("  Type: %v\n", order["type"])
-		fmt.Printf("  Side: %v\n", order["side"])
-		fmt.Printf("  Price: %v\n", order["price"])
-		fmt.Printf("  Quantity: %v\n", order["orderAmount"])
+		fmt.Printf("  ID: %v\n", order.ClientOrderID)
+		fmt.Printf("  Symbol: %v\n", order.Symbol)
+		fmt.Printf("  Type: %v\n", order.Type)
+		fmt.Printf("  Side: %v\n", order.Side)
+		fmt.Printf("  Price: %v\n", order.Price)
+		fmt.Printf("  Quantity: %v\n", order.OrderAmount)
 	}
 }
 
@@ -345,7 +321,7 @@ func cancelOrders(client *pi42.Client) {
 
 	// Cancel the first open order
 	firstOrder := openOrders[0]
-	clientOrderID := firstOrder["clientOrderId"].(string)
+	clientOrderID := firstOrder.ClientOrderID
 
 	fmt.Printf("Cancelling order with client order ID: %s\n", clientOrderID)
 	result, err := client.Order.DeleteOrder(clientOrderID)

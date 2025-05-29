@@ -52,7 +52,8 @@ func (api *MarketAPI) GetAggTrades(contractPair string) (map[string]interface{},
 }
 
 // GetDepth gets order book depth data for a specific trading pair
-func (api *MarketAPI) GetDepth(contractPair string) (map[string]interface{}, error) {
+// Returns structured DepthResponse containing order book bids and asks
+func (api *MarketAPI) GetDepth(contractPair string) (*DepthResponse, error) {
 	endpoint := fmt.Sprintf("/v1/market/depth/%s", strings.ToLower(contractPair))
 
 	data, err := api.client.Get(endpoint, nil, true)
@@ -60,25 +61,26 @@ func (api *MarketAPI) GetDepth(contractPair string) (map[string]interface{}, err
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result DepthResponse
 	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("error parsing response: %v", err)
+		return nil, fmt.Errorf("error parsing depth response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // KlinesParams represents parameters for the Klines method
 type KlinesParams struct {
-	Pair      string `json:"pair"`      // Trading pair (e.g., "BTCINR")
-	Interval  string `json:"interval"`  // Kline interval (e.g., "1m", "1h", "1d")
+	Pair      string `json:"pair"`                // Trading pair (e.g., "BTCINR")
+	Interval  string `json:"interval"`            // Kline interval (e.g., "1m", "1h", "1d")
 	StartTime int64  `json:"startTime,omitempty"` // Optional start time in milliseconds
 	EndTime   int64  `json:"endTime,omitempty"`   // Optional end time in milliseconds
 	Limit     int    `json:"limit,omitempty"`     // Optional limit on number of results
 }
 
 // GetKlines gets candlestick (kline) data for a specific trading pair and interval
-func (api *MarketAPI) GetKlines(params KlinesParams) ([]map[string]interface{}, error) {
+// Returns an array of structured KlineData objects
+func (api *MarketAPI) GetKlines(params KlinesParams) ([]KlineData, error) {
 	endpoint := "/v1/market/klines"
 
 	// Convert struct to map for the request
@@ -102,20 +104,9 @@ func (api *MarketAPI) GetKlines(params KlinesParams) ([]map[string]interface{}, 
 		return nil, err
 	}
 
-	// Parse the response as a JSON array
-	var result []map[string]interface{}
-
-	// Check if the data starts with '[' which indicates a JSON array
-	if len(data) > 0 && data[0] == '[' {
-		if err := json.Unmarshal(data, &result); err != nil {
-			return nil, fmt.Errorf("error parsing klines response: %v", err)
-		}
-		return result, nil
-	}
-
-	// Otherwise try to parse as a normal JSON object
+	var result []KlineData
 	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("error parsing response: %v", err)
+		return nil, fmt.Errorf("error parsing klines response: %v", err)
 	}
 
 	return result, nil
@@ -124,9 +115,4 @@ func (api *MarketAPI) GetKlines(params KlinesParams) ([]map[string]interface{}, 
 // For backward compatibility
 func (api *MarketAPI) Ticker24Hr(contractPair string) (map[string]interface{}, error) {
 	return api.GetTicker24hr(contractPair)
-}
-
-// For backward compatibility
-func (api *MarketAPI) Klines(params KlinesParams) ([]map[string]interface{}, error) {
-	return api.GetKlines(params)
 }

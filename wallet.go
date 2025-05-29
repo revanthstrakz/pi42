@@ -15,9 +15,9 @@ func NewWalletAPI(client *Client) *WalletAPI {
 	return &WalletAPI{client: client}
 }
 
-// FuturesWalletDetails gets all details of Futures wallet
+// FuturesWalletDetails gets all details of Futures wallet with structured response
 // marginAsset: Asset to query wallet details for (e.g., "INR", "USDT")
-func (api *WalletAPI) FuturesWalletDetails(marginAsset string) (map[string]interface{}, error) {
+func (api *WalletAPI) FuturesWalletDetails(marginAsset string) (*FuturesWalletResponse, error) {
 	endpoint := "/v1/wallet/futures-wallet/details"
 
 	params := make(map[string]string)
@@ -32,17 +32,17 @@ func (api *WalletAPI) FuturesWalletDetails(marginAsset string) (map[string]inter
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result FuturesWalletResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
-// FundingWalletDetails gets details of funding wallet
+// FundingWalletDetails gets details of funding wallet with structured response
 // marginAsset: Asset to query wallet details for (e.g., "INR", "USDT")
-func (api *WalletAPI) FundingWalletDetails(marginAsset string) (map[string]interface{}, error) {
+func (api *WalletAPI) FundingWalletDetails(marginAsset string) (*FundingWalletResponse, error) {
 	endpoint := "/v1/wallet/funding-wallet/details"
 
 	params := make(map[string]string)
@@ -57,10 +57,10 @@ func (api *WalletAPI) FundingWalletDetails(marginAsset string) (map[string]inter
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result FundingWalletResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }

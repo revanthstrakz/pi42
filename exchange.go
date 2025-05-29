@@ -15,8 +15,8 @@ func NewExchangeAPI(client *Client) *ExchangeAPI {
 	return &ExchangeAPI{client: client}
 }
 
-// ExchangeInfo retrieves exchange information
-func (api *ExchangeAPI) ExchangeInfo(market string) (map[string]interface{}, error) {
+// ExchangeInfo retrieves exchange information with structured response
+func (api *ExchangeAPI) ExchangeInfo(market string) (*ExchangeInfoResponse, error) {
 	endpoint := "/v1/exchange/exchangeInfo"
 
 	params := make(map[string]string)
@@ -29,16 +29,16 @@ func (api *ExchangeAPI) ExchangeInfo(market string) (map[string]interface{}, err
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result ExchangeInfoResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // UpdatePreference updates the leverage and margin-mode for a specified contract
-func (api *ExchangeAPI) UpdatePreference(leverage int, marginMode, contractName string) (map[string]interface{}, error) {
+func (api *ExchangeAPI) UpdatePreference(leverage int, marginMode, contractName string) (*PreferenceUpdateResponse, error) {
 	endpoint := "/v1/exchange/update/preference"
 
 	params := map[string]interface{}{
@@ -52,16 +52,16 @@ func (api *ExchangeAPI) UpdatePreference(leverage int, marginMode, contractName 
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result PreferenceUpdateResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // UpdateLeverage updates the leverage for a specified contract
-func (api *ExchangeAPI) UpdateLeverage(leverage int, contractName string) (map[string]interface{}, error) {
+func (api *ExchangeAPI) UpdateLeverage(leverage int, contractName string) (*LeverageUpdateResponse, error) {
 	endpoint := "/v1/exchange/update/leverage"
 
 	params := map[string]interface{}{
@@ -74,10 +74,10 @@ func (api *ExchangeAPI) UpdateLeverage(leverage int, contractName string) (map[s
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	var result LeverageUpdateResponse
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
-	return result, nil
+	return &result, nil
 }
