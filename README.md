@@ -369,6 +369,76 @@ The WebSocket client supports the following event types:
 - `markPriceArr`: Array of mark prices
 - `allContractDetails`: Contract detail updates
 
+## User Data Streams
+
+In addition to public WebSocket streams, Pi42 provides authenticated user data streams to receive real-time updates about your account activity.
+
+### Creating a User Data Stream
+
+To use authenticated WebSockets, you need to obtain a listen key:
+
+```go
+// Create a listen key
+listenKeyResponse, err := client.UserData.CreateListenKey()
+if err != nil {
+    log.Fatalf("Error creating listen key: %v", err)
+}
+listenKey := listenKeyResponse["listenKey"]
+
+// Authenticated WebSocket URL
+serverUrl := fmt.Sprintf("https://fawss-uds.pi42.com/auth-stream/%s", listenKey)
+```
+
+### Keeping the Stream Alive
+
+The listen key will expire after 60 minutes of inactivity. To keep it active, periodically call the update endpoint:
+
+```go
+// Update the listen key periodically
+go func() {
+    ticker := time.NewTicker(10 * time.Minute)
+    defer ticker.Stop()
+    
+    for range ticker.C {
+        _, err := client.UserData.UpdateListenKey()
+        if err != nil {
+            log.Printf("Error updating listen key: %v", err)
+        }
+    }
+}()
+```
+
+### Closing the Stream
+
+When you're done using the stream, delete the listen key:
+
+```go
+// Delete the listen key
+_, err := client.UserData.DeleteListenKey()
+if err != nil {
+    log.Printf("Error deleting listen key: %v", err)
+}
+```
+
+### User Data Events
+
+The authenticated WebSocket provides the following events:
+
+- `newPosition`: When a new position is created
+- `orderFilled`: When an order is completely filled
+- `orderPartiallyFilled`: When an order is partially filled
+- `orderCancelled`: When an order is cancelled
+- `orderFailed`: When an order fails
+- `newOrder`: When a stop order is executed
+- `updateOrder`: When a stop limit order is executed
+- `updatePosition`: When a position is updated
+- `closePosition`: When a position is closed
+- `balanceUpdate`: When the balance is updated
+- `newTrade`: When a new trade occurs
+- `sessionExpired`: When the session expires
+
+For a complete example, see the `private_data_stream_example.go` file.
+
 ## Complete Examples
 
 ### Basic Market Data Example

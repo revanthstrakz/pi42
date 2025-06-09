@@ -14,8 +14,8 @@ import (
 
 func main() {
 	// BasicUsageExample()
-	// DataStreamExample()
-	LimitCheck()
+	DataStreamExample()
+	// tradingHelperExample()
 }
 
 func BasicUsageExample() {
